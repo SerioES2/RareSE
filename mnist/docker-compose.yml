@@ -1,0 +1,11 @@
+version: "3"
+services:
+    master: 
+        user: root
+        build: .
+        container_name: pytorch
+        ports: 
+            - 8082:8080
+        volumes:
+            - F:\SERIO\Docker\JenkinsBO\jenkins_home:/var/jenkins_home
+ 
