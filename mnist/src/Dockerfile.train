@@ -1,0 +1,15 @@
+FROM pytorch/pytorch
+
+WORKDIR /workspace
+
+COPY ./Training /workspace
+COPY ./Model /workspace/Model
+COPY ./Utility /workspace/Utility
+COPY ./Config/aws /root/.aws
+COPY ./requirements_train.txt /workspace
+
+RUN apt-get update
+RUN apt-get install -y vim
+RUN pip install -r requirements_train.txt
+
+CMD ["python", "TrainRunner.py"]
