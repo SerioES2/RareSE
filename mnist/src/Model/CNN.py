@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 import torchvision
 import torchvision.transforms as transforms
-import numpy as np
-from PIL import Image, ImageOps
 
-device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-
-# CNN
+#########
+# CNN 
+# - 2 convolutional layer
+#   - convolution1
+#   - convolution2
+# - 1 fully connected layer
 class ConvNet(nn.Module):
   def __init__(self, classes = 10):
     super(ConvNet, self).__init__()
@@ -32,20 +33,3 @@ class ConvNet(nn.Module):
     out = self.fc(out)
     return out
 
-def load_prediction_model(model_path):
-  output_classes = 10
-  model = ConvNet(output_classes)
-  model.load_state_dict(torch.load(model_path, map_location=device))
-  return model
-
-def read_image(image_file):
-  image_data = Image.open(image_file)
-  image_data = image_data.convert('L')
-  transform = transforms.Compose([transforms.ToTensor()])
-  image_data = transform(image_data).unsqueeze(0)
-  return image_data
-
-def predict(model, image_data):
-  output = model(image_data)
-  _, result = torch.max(output, 1)
-  return result
