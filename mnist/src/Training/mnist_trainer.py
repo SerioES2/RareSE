@@ -29,9 +29,48 @@ batch_size = 100
 learning_rate = 0.01
 
 def testRun():
+
+  from ignite.engine import Events, create_supervised_trainer, create_supervised_evaluator
+  from ignite.metrics import Accuracy, Loss
+
   # MNIST dataset
   train_dataset = torchvision.datasets.MNIST(root='/data', train=True, transform=transforms.ToTensor(), download=True)
-  
+  valid_dataset = torchvision.datasets.MNIST(root='/data', train=False, transform=transforms.ToTensor(), download=True)
+  train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+  valid_loader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
+
+  model = mlp.SimpleMLP(output_classes).to(device)
+  # Loss and optimizer
+  criterion = nn.CrossEntropyLoss()
+  optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+
+  # create trainer
+  trainer = create_supervised_trainer(model, optimizer, criterion, device=device)
+
+  metrics = {
+    "accuracy" : Accuracy(),
+    "loss" : Loss(criterion)
+  }
+  train_evaluator = create_supervised_evaluator(model, metrics = metrics, device=device)
+  valid_evaluator = create_supervised_evaluator(model, metrics = metrics, device=device)
+
+  @trainer.on(Events.EPOCH_COMPLETED)
+  def log_training_result(engine):
+    train_evaluator.run(train_loader)
+    metrics = train_evaluator.state.metrics
+    print("Training Results - Epoch[{}] Avg accuracy: {:.2f} Avg loss: {:.2f}"
+          .format(engine.state.epoch, metrics['accuracy'], metrics['loss']))
+
+  @trainer.on(Events.EPOCH_COMPLETED)
+  def log_validation_result(engine):
+    valid_evaluator.run(train_loader)
+    metrics = valid_evaluator.state.metrics
+    print("Validation Results - Epoch[{}] Avg accuracy: {:.2f} Avg loss: {:.2f}"
+          .format(engine.state.epoch, metrics['accuracy'], metrics['loss']))
+
+  trainer.run(train_loader, max_epoches = 3)
+
+'''
   cv_splits = 3
   kfold = KFold(n_splits = cv_splits, shuffle=True, random_state = 0)
   for fold_idx, (train_idx, valid_idx) in enumerate(kfold.split(train_dataset)):
@@ -48,6 +87,7 @@ def testRun():
     # Training
     mnist_trainer = trainer.MLPTrainer(train_loader, model=model, cri=criterion, opt=optimizer, device=device)
     train_result = mnist_trainer.Execute(epochs)
+'''
 
 
 
