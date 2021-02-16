@@ -178,5 +178,6 @@ def RunTrain(isSave=False):
 
   return trained_model
 
-RunTorchCV()
+#RunTorchCV()
 #RunTrain(isSave=True)
+testRun()
